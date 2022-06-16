@@ -1,3 +1,17 @@
+# we cannot reasonably get dependencies from manifests removed here,
+# so use this hack to remove them when autoproj tries to add the manifest.xml
+module Autoproj
+    class PackageDefinition
+        old_apply_dependencies_from_manifest = instance_method(:apply_dependencies_from_manifest)
+        define_method(:apply_dependencies_from_manifest) do
+            autobuild.description.dependencies.filter! do |dep|
+                dep.name != "qt4"
+            end
+            old_apply_dependencies_from_manifest.bind(self).()
+        end
+    end
+end
+
 
 def mars_package(srcDir,type = :cmake_package)
     if Gem::Version.new(Autobuild::VERSION) <= Gem::Version.new('1.7.2')
